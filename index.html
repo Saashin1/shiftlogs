@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shift Logs</title>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+h2{
+text-align:center;
+}
+
+textarea{
+width:100%;
+height:250px;
+font-size:16px;
+}
+
+input,button{
+padding:10px;
+margin:5px 0;
+font-size:16px;
+}
+
+.log{
+border:1px solid #ccc;
+padding:10px;
+margin-top:10px;
+white-space:pre-wrap;
+border-radius:5px;
+}
+
+.copybtn{
+margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Shift Log Repository</h2>
+
+<input type="date" id="logDate"><br>
+
+<textarea id="logText" placeholder="Paste shift log here"></textarea><br>
+
+<button onclick="saveLog()">Save Log</button>
+
+<hr>
+
+<div id="logs"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+push,
+onValue
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyBEa9wRyDQbDwD-JsADdWXkyGN4A5wvfwQ",
+authDomain: "shiftlogs-cdaa9.firebaseapp.com",
+databaseURL: "https://shiftlogs-cdaa9-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "shiftlogs-cdaa9",
+storageBucket: "shiftlogs-cdaa9.firebasestorage.app",
+messagingSenderId: "396249481104",
+appId: "1:396249481104:web:9382e6eae07dbee535fd15"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.saveLog = function(){
+
+const date = document.getElementById("logDate").value;
+const text = document.getElementById("logText").value;
+
+if(!date || !text){
+alert("Enter date and text");
+return;
+}
+
+push(ref(db,"logs"),{
+date: date,
+text: text,
+time: Date.now()
+});
+
+document.getElementById("logText").value = "";
+document.getElementById("logDate").value = "";
+
+alert("Log saved successfully");
+};
+
+onValue(ref(db,"logs"), snapshot => {
+
+let data = snapshot.val();
+let html = "";
+
+if(data){
+
+let arr = Object.values(data);
+
+arr.sort((a,b)=>b.time-a.time);
+
+arr = arr.slice(0,6);
+
+arr.forEach(log => {
+
+html += `
+<div class="log">
+<b>${log.date}</b>
+
+<br><br>
+
+${log.text}
+
+<br><br>
+
+<button class="copybtn"
+onclick="navigator.clipboard.writeText(\`${log.text.replace(/`/g,"\\`")}\`)">
+Copy
+</button>
+
+</div>
+`;
+
+});
+
+}
+
+document.getElementById("logs").innerHTML = html;
+
+});
+
+</script>
+
+</body>
+</html>
