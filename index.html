@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shift Log Repository</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            max-width:900px;
+            margin:auto;
+            padding:20px;
+        }
+        textarea{
+            width:100%;
+            height:250px;
+        }
+        input,button{
+            padding:10px;
+            margin:5px 0;
+        }
+        .log{
+            border:1px solid #ccc;
+            padding:10px;
+            margin-top:10px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Shift Log Repository</h2>
+
+<input type="date" id="logDate"><br>
+
+<textarea id="logText"
+placeholder="Paste extracted shift log here"></textarea><br>
+
+<button onclick="saveLog()">Save Log</button>
+
+<h3>Saved Logs</h3>
+
+<div id="logs"></div>
+
+<script>
+function saveLog(){
+    let date=document.getElementById("logDate").value;
+    let text=document.getElementById("logText").value;
+
+    if(!date || !text){
+        alert("Enter date and text");
+        return;
+    }
+
+    let logs=JSON.parse(localStorage.getItem("logs"))||[];
+
+    logs.unshift({
+        date:date,
+        text:text
+    });
+
+    localStorage.setItem("logs",JSON.stringify(logs));
+
+    displayLogs();
+
+    document.getElementById("logText").value="";
+}
+
+function copyText(text){
+    navigator.clipboard.writeText(text);
+    alert("Copied");
+}
+
+function displayLogs(){
+    let logs=JSON.parse(localStorage.getItem("logs"))||[];
+
+    let html="";
+
+    logs.forEach(log=>{
+        html+=`
+        <div class="log">
+            <b>${log.date}</b><br><br>
+            <pre>${log.text}</pre>
+            <button onclick='copyText(${JSON.stringify(log.text)})'>
+                Copy
+            </button>
+        </div>
+        `;
+    });
+
+    document.getElementById("logs").innerHTML=html;
+}
+
+displayLogs();
+</script>
+
+</body>
+</html>
